@@ -39,7 +39,6 @@ class LeadSerializer(serializers.HyperlinkedModelSerializer):
         # upload only the "files[i]" files not logo or anything else
         images_data = self.context.get('view').request.FILES
         files_length = self.context.get('view').request.data['files_length']
-        print(files_length)
         files = []
         for file in images_data.items():
             for i in range(int(files_length)):
@@ -49,6 +48,20 @@ class LeadSerializer(serializers.HyperlinkedModelSerializer):
         lead = Lead.objects.create(**validated_data)
         for image_data in files:
             image = image_data[1]
-            print(image)
             ImageGallery.objects.create(lead=lead, image=image)
         return lead
+
+    def update(self, instance, validated_data):
+        images_data = self.context.get('view').request.FILES
+        files_length = self.context.get('view').request.data['files_length']
+        files = []
+        for file in images_data.items():
+            for i in range(int(files_length)):
+                if file[0] == 'files['+str(i)+']':
+                    files.append(file)
+        for image_data in files:
+            image = image_data[1]
+            ImageGallery.objects.create(lead=instance, image=image)
+        
+        return super().update(instance, validated_data)
+
